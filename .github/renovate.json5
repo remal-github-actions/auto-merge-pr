@@ -1,0 +1,37 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>remal/renovate-config:global"],
+
+  "git-submodules": {
+    enabled: false, // This is in beta for now, so let's use Dependabot to update Git submodules
+  },
+
+  constraintsFiltering: "strict",
+  // $$$sync-with-template-modifiable: constraints $$$
+  constraints: {
+    node: "^20.9999.9999",
+  },
+  force: {
+    constraints: {
+      node: "^20.9999.9999",
+    },
+  },
+  // $$$sync-with-template-modifiable-end$$$
+
+  packageRules: [
+    {
+      "matchCategories": ["node"],
+      "enabled": false
+    },
+    {
+      matchCategories: ["js"],
+      matchPackageNames: ['@types/node'],
+      extends: ["github>remal/renovate-config:disable-major-updates"],
+    },
+    {
+      matchCategories: ["js"],
+      matchPackageNames: ["renovate"],
+      schedule: ["after 6pm on sunday"]
+    },
+  ],
+}

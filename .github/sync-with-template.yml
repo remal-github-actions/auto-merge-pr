@@ -1,0 +1,20 @@
+$schema: https://raw.githubusercontent.com/remal-github-actions/sync-with-template/main/config.schema.json
+includes:
+- .github/**
+- .mergify/*
+- .gitattributes
+- .gitignore
+- .editorconfig
+- LICENSE
+- retry-connection-timeouts
+- "*-retry-connection-timeouts"
+- retry-connection-timeouts-*
+- checkstyle.xml
+- lombok.config
+- .eslint*
+- .prettier*
+- .yarn*
+- .yarn/**
+- check-dependency-engines.*js
+- update-node-version-in-files.*js
+- tsconfig-generate-app.*js

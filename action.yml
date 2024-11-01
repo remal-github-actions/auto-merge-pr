@@ -1,0 +1,16 @@
+name: Template action
+description: Template action description
+
+inputs:
+  githubToken:
+    required: true
+    default: '${{github.token}}'
+    description: GitHub access token
+  dryRun:
+    required: true
+    default: 'false'
+    description: Set to 'true' to enable dry run
+
+runs:
+  using: node20
+  main: 'dist/index.js'
