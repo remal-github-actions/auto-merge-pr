@@ -41,10 +41,11 @@ jobs:
           .github/workflows/template-cleanup.yml
 
     - name: Push back
-      if: ${{github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')}}
       id: push-back
+      if: ${{github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')}}
       uses: remal-github-actions/push-back@v1
       with:
+        githubToken: ${{secrets.PUSH_BACK_TOKEN || github.token}}
         message: 'Template cleanup'
 
     - name: Fail if the repository was changed before pushing back
