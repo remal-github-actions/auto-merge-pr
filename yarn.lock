@@ -2488,6 +2488,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"auto-merge-pr@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "auto-merge-pr@workspace:."
+  dependencies:
+    "@actions/core": "npm:1.11.1"
+    "@actions/github": "npm:6.0.0"
+    "@octokit/openapi-types": "npm:22.2.0"
+    "@octokit/rest": "npm:21.0.2"
+    "@tsconfig/node20": "npm:20.1.4"
+    "@types/console-log-level": "npm:1.4.5"
+    "@types/jest": "npm:29.5.14"
+    "@types/node": "npm:20.17.5"
+    "@types/semver": "npm:7.5.8"
+    "@vercel/ncc": "npm:0.38.2"
+    console-log-level: "npm:1.4.1"
+    eslint: "npm:8.57.1"
+    eslint-config-prettier: "npm:9.1.0"
+    eslint-import-resolver-typescript: "npm:3.6.3"
+    eslint-plugin-github: "npm:5.0.2"
+    eslint-plugin-import: "npm:2.31.0"
+    eslint-plugin-jest: "npm:28.8.3"
+    eslint-plugin-prettier: "npm:5.2.1"
+    jest: "npm:29.7.0"
+    jest-circus: "npm:29.7.0"
+    jest-extended: "npm:4.0.2"
+    octokit: "npm:4.0.2"
+    rimraf: "npm:6.0.1"
+    semver: "npm:7.6.3"
+    ts-jest: "npm:29.2.5"
+    typescript: "npm:5.6.3"
+    typescript-eslint: "npm:8.12.2"
+  languageName: unknown
+  linkType: soft
+
 "available-typed-arrays@npm:^1.0.5":
   version: 1.0.5
   resolution: "available-typed-arrays@npm:1.0.5"
@@ -7832,40 +7866,6 @@ __metadata:
   checksum: 10c0/a5eca3eb50bc11552d453488344e6507156b9193efd7635e98e867fab275d527af53d8866e2370cd09dfe74378a18111622ace35af6a608e5223a7d27fe99537
   languageName: node
   linkType: hard
-
-"template-typescript@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "template-typescript@workspace:."
-  dependencies:
-    "@actions/core": "npm:1.11.1"
-    "@actions/github": "npm:6.0.0"
-    "@octokit/openapi-types": "npm:22.2.0"
-    "@octokit/rest": "npm:21.0.2"
-    "@tsconfig/node20": "npm:20.1.4"
-    "@types/console-log-level": "npm:1.4.5"
-    "@types/jest": "npm:29.5.14"
-    "@types/node": "npm:20.17.5"
-    "@types/semver": "npm:7.5.8"
-    "@vercel/ncc": "npm:0.38.2"
-    console-log-level: "npm:1.4.1"
-    eslint: "npm:8.57.1"
-    eslint-config-prettier: "npm:9.1.0"
-    eslint-import-resolver-typescript: "npm:3.6.3"
-    eslint-plugin-github: "npm:5.0.2"
-    eslint-plugin-import: "npm:2.31.0"
-    eslint-plugin-jest: "npm:28.8.3"
-    eslint-plugin-prettier: "npm:5.2.1"
-    jest: "npm:29.7.0"
-    jest-circus: "npm:29.7.0"
-    jest-extended: "npm:4.0.2"
-    octokit: "npm:4.0.2"
-    rimraf: "npm:6.0.1"
-    semver: "npm:7.6.3"
-    ts-jest: "npm:29.2.5"
-    typescript: "npm:5.6.3"
-    typescript-eslint: "npm:8.12.2"
-  languageName: unknown
-  linkType: soft
 
 "test-exclude@npm:^6.0.0":
   version: 6.0.0
