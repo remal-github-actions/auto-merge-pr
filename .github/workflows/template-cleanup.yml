@@ -1,0 +1,55 @@
+name: Template cleanup
+
+on:
+  push:
+    branches:
+    - main
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  template-cleanup:
+    name: Template cleanup
+    if: ${{github.repository != 'remal-github-actions/template-typescript'}}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Cleanup
+      run: |
+        export LC_CTYPE=C
+        export LANG=C
+
+        NAME="${GITHUB_REPOSITORY##*/}"
+
+        sed -i "s/template-typescript/$NAME/g" *.json
+
+        sed -i "s/%NAME%/$NAME/g" .github/template-cleanup/*
+        sed -i "s/%REPOSITORY%/${GITHUB_REPOSITORY/\//\\/}/g" .github/template-cleanup/*
+        cp -R .github/template-cleanup/. .
+
+        rm -rf \
+          .github/sync-with-template-local-transformations.yml \
+          .github/template-cleanup \
+          .github/workflows/template-cleanup.yml
+
+    - name: Push back
+      id: push-back
+      if: ${{github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')}}
+      uses: remal-github-actions/push-back@v1
+      with:
+        githubToken: ${{secrets.PUSH_BACK_TOKEN || github.token}}
+        message: 'Template cleanup'
+
+    - name: Fail if the repository was changed before pushing back
+      if: ${{steps.push-back.outputs.result == 'remote-changed'}}
+      run: |
+        echo "The repository was changed before pushing back"
+        exit 1
