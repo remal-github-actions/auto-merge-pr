@@ -10,7 +10,7 @@ on:
     branches:
     - '**'
   schedule:
-  - cron: '49 16 * * *' # sync-with-template: adjust
+  - cron: '4 7 * * *' # sync-with-template: adjust
   workflow_dispatch: { }
 
 permissions:
