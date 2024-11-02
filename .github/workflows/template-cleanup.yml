@@ -29,9 +29,10 @@ jobs:
 
         NAME="${GITHUB_REPOSITORY##*/}"
 
+        sed -i "s/template-typescript/$NAME/g" *.json
+
         sed -i "s/%NAME%/$NAME/g" .github/template-cleanup/*
         sed -i "s/%REPOSITORY%/${GITHUB_REPOSITORY/\//\\/}/g" .github/template-cleanup/*
-
         cp -R .github/template-cleanup/. .
 
         rm -rf \
