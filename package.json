@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package",
-  "name": "template-typescript",
+  "name": "auto-merge-pr",
   "version": "1.0.0",
   "engines": {
     "node": ">=20"
