@@ -37803,6 +37803,7 @@ function newOctokitInstance(token) {
     const client = {
         ...octokit.rest,
         paginate: octokit.paginate,
+        graphql: octokit.graphql,
     };
     return client;
 }
@@ -37812,15 +37813,43 @@ function newOctokitInstance(token) {
 
 
 const githubToken = core.getInput('githubToken', { required: true });
-const _dryRun = core.getInput('dryRun', { required: true }).toLowerCase() === 'true';
+const requiredLabels = core.getInput('requiredLabels').split(/[\r\n,;]+/g).map(it => it.trim().toLowerCase()).filter(it => it.length);
+const authors = core.getInput('authors').split(/[\r\n,;]+/g).map(it => it.trim().toLowerCase()).filter(it => it.length);
+const preferredMergeOption = core.getInput('preferredMergeOption');
+const dryRun = core.getInput('dryRun').toLowerCase() === 'true';
 const octokit = newOctokitInstance(githubToken);
 async function run() {
     try {
-        const repositoryInfo = await octokit.repos.get({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-        });
-        core.info(JSON.stringify(repositoryInfo, null, 2));
+        if (github.context.eventName === 'branch_protection_rule') {
+            await processAllPrs();
+        }
+        else if (github.context.eventName === 'check_run') {
+            await processCheckRunCompletedEvent(github.context.payload);
+        }
+        else if (github.context.eventName === 'deployment_status') {
+            await processDeploymentStatusCreated(github.context.payload);
+        }
+        else if (github.context.eventName === 'pull_request') {
+            core.warning(`Unsupported event: '${github.context.eventName}'`);
+        }
+        else if (github.context.eventName === 'pull_request_review') {
+            core.warning(`Unsupported event: '${github.context.eventName}'`);
+        }
+        else if (github.context.eventName === 'push') {
+            await processAllPrs();
+        }
+        else if (github.context.eventName === 'schedule') {
+            await processAllPrs();
+        }
+        else if (github.context.eventName === 'status') {
+            core.warning(`Unsupported event: '${github.context.eventName}'`);
+        }
+        else if (github.context.eventName === 'workflow_dispatch') {
+            await processAllPrs();
+        }
+        else {
+            core.warning(`Unsupported event: '${github.context.eventName}'`);
+        }
     }
     catch (error) {
         core.setFailed(error instanceof Error ? error : `${error}`);
@@ -37828,4 +37857,115 @@ async function run() {
     }
 }
 run();
+async function processPr(prParam) {
+    const prNumber = typeof prParam === 'number' ? prParam : prParam.number;
+    await core.group(`Processing PR #${prNumber}`, async () => {
+        const pr = typeof prParam !== 'number' ? prParam : await octokit.pulls.get({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            pull_number: prNumber,
+        }).then(it => it.data);
+        const baseRepo = pr.base.repo.html_url;
+        const headRepo = pr.head.repo?.html_url ?? '';
+        if (baseRepo !== headRepo) {
+            core.warning(`Skipping PR #${prNumber}: base's repo ${baseRepo} is different from head's repo ${headRepo}`);
+            return;
+        }
+        if (pr.merged_at) {
+            core.warning(`Skipping PR #${prNumber}: already merged`);
+            return;
+        }
+        if (pr.auto_merge) {
+            core.warning(`Skipping PR #${prNumber}: auto merge is already activated`);
+            return;
+        }
+        if (pr.draft) {
+            core.warning(`Skipping PR #${prNumber}: draft`);
+            return;
+        }
+        if (requiredLabels.length) {
+            if (!requiredLabels.every(label => pr.labels.some(it => it.name.toLowerCase() === label))) {
+                core.warning(`Skipping PR #${prNumber}: doesn't have all required labels: ${requiredLabels.join(', ')}`);
+                return;
+            }
+        }
+        if (authors.length) {
+            const author = pr.user?.login?.toLowerCase() ?? '';
+            if (!authors.includes(author)) {
+                core.warning(`Skipping PR #${prNumber}: the author ${author} if not one of: ${authors.join(', ')}`);
+                return;
+            }
+        }
+        if (pr.mergeable === false) {
+            core.warning(`Skipping PR #${prNumber}: not mergeable`);
+            return;
+        }
+        const hasRequiredChecks = await doesBranchHaveRequiredChecks(pr.base.ref);
+        if (!hasRequiredChecks) {
+            core.warning(`Skipping PR #${prNumber}: the base branch '${pr.base.ref}' doesn't have required status checks`);
+            return;
+        }
+        core.warning(`Merging PR #${prNumber}`);
+        if (!dryRun) {
+            await octokit.pulls.merge({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                pull_number: prNumber,
+                sha: pr.head.sha,
+                merge_method: preferredMergeOption.length ? preferredMergeOption : undefined,
+            });
+        }
+    });
+}
+async function doesBranchHaveRequiredChecks(branchName) {
+    if (doesBranchHaveRequiredChecksCache.has(branchName)) {
+        return doesBranchHaveRequiredChecksCache.get(branchName);
+    }
+    const branch = await octokit.repos.getBranch({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        branch: branchName,
+    }).then(it => it.data);
+    const hasRequiredChecks = !!(branch.protection.enabled
+        && branch.protection?.required_status_checks?.checks?.length);
+    doesBranchHaveRequiredChecksCache.set(branchName, hasRequiredChecks);
+    return hasRequiredChecks;
+}
+const doesBranchHaveRequiredChecksCache = new Map();
+async function processAllPrs() {
+    const responses = octokit.paginate.iterator(octokit.pulls.list, {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        state: 'open',
+    });
+    for await (const response of responses) {
+        for (const pr of response.data) {
+            await processPr(pr);
+        }
+    }
+}
+async function processCheckRunCompletedEvent(event) {
+    if (event.check_run.id === github.context.runId) {
+        core.debug(`Skipping current check run: ${event.check_run.html_url}`);
+        return;
+    }
+    if (event.action !== 'completed') {
+        core.debug(`Skipping check run by action: '${event.action}'`);
+        return;
+    }
+    if (!['success', 'skipped'].includes(event.check_run.conclusion ?? '')) {
+        core.debug(`Skipping check run by conclusion: '${event.check_run.conclusion}'`);
+        return;
+    }
+    for (const prMini of event.check_run.pull_requests) {
+        await processPr(prMini.number);
+    }
+}
+async function processDeploymentStatusCreated(event) {
+    if (event.deployment_status.state !== 'success') {
+        core.debug(`Skipping deployment status by state: '${event.deployment_status.state}'`);
+        return;
+    }
+    await processAllPrs();
+}
 
