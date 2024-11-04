@@ -5,11 +5,29 @@ inputs:
   githubToken:
     required: true
     default: '${{github.token}}'
-    description: GitHub access token
+    description: |-
+      GitHub access token.
+  requiredLabels:
+    required: false
+    description: |-
+      PR should have all these labels to be merged automatically.
+      Case-insensitive.
+  authors:
+    required: false
+    description: |-
+      PR should be created by any of these users to be merged automatically.
+      Case-insensitive.
+  preferredMergeOption:
+    required: false
+    default: 'squash'
+    description: |-
+      Preferred merge option.
+      Can be one of: 'merge', 'squash', 'rebase'.
   dryRun:
     required: true
     default: 'false'
-    description: Set to 'true' to enable dry run
+    description: |-
+      Set to 'true' to enable dry run.
 
 runs:
   using: node20

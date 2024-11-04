@@ -74,11 +74,13 @@ export function newOctokitInstance(token: string) {
 
     type Rest = typeof octokit.rest
     type Paginate = { paginate: typeof octokit.paginate }
-    type Client = Rest & Paginate
+    type GraphQL = { graphql: typeof octokit.graphql }
+    type Client = Rest & Paginate & GraphQL
 
     const client: Client = {
         ...octokit.rest,
         paginate: octokit.paginate,
+        graphql: octokit.graphql,
     }
     return client
 }
